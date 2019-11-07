@@ -415,6 +415,7 @@ class VerticalTravelDots extends StatelessWidget {
 
         double top = endTop +
             (1 - (1.2 * (animation.value - 1 / 6))) * (430.0 + 10.0 - 4);
+        double oneThird = (startTop - endTop) / 3;
 
         print(MediaQuery.of(context).padding.bottom);
         return Positioned(
@@ -430,7 +431,55 @@ class VerticalTravelDots extends StatelessWidget {
                   width: 2,
                   height: double.infinity,
                   color: white,
-                )
+                ),
+                Positioned(
+                  top: top > oneThird + endTop ? 0 : oneThird + endTop - top,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: white, width: 2),
+                      color: mainBlack,
+                    ),
+                    width: 8,
+                    height: 8,
+                  ),
+                ),
+                Positioned(
+                  top:
+                      top > oneThird + endTop ? 0 : 2 * oneThird + endTop - top,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: white, width: 2),
+                      color: mainBlack,
+                    ),
+                    width: 8,
+                    height: 8,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(0, 1),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: white, width: 1),
+                      color: mainBlack,
+                    ),
+                    width: 8,
+                    height: 8,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment(0, -1),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: white,
+                    ),
+                    width: 8,
+                    height: 8,
+                  ),
+                ),
               ],
             ),
           ),
