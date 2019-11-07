@@ -30,6 +30,7 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   final PageController _pagecontroller = PageController();
   AnimationController _animationController;
+  double get maxHeight => 380;
 
   @override
   void initState() {
@@ -53,38 +54,61 @@ class _MainPageState extends State<MainPage>
       child: ListenableProvider.value(
         value: _animationController,
         child: Scaffold(
-          body: SafeArea(
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: <Widget>[
-                PageView(
-                  controller: _pagecontroller,
-                  physics: ClampingScrollPhysics(),
-                  children: <Widget>[
-                    LeopardPage(),
-                    VulturePage(),
-                  ],
-                ),
-                AppBar(),
-                LeopardImage(),
-                VultureImage(),
-                ShareButton(),
-                PageIndicator(),
-                ArrowIcon(),
-                TravelDetailLabel(),
-                StartCampLabel(),
-                StartTimeLabel(),
-                BaseCampLabel(),
-                BaseTimeLabel(),
-                DistanceLabel(),
-                TravelDots(),
-                MapButton(),
-              ],
+          body: GestureDetector(
+            onVerticalDragUpdate: _handleDragUpdate,
+            onVerticalDragEnd: _handleDragEnd,
+            child: SafeArea(
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: <Widget>[
+                  PageView(
+                    controller: _pagecontroller,
+                    physics: ClampingScrollPhysics(),
+                    children: <Widget>[
+                      LeopardPage(),
+                      VulturePage(),
+                    ],
+                  ),
+                  AppBar(),
+                  LeopardImage(),
+                  VultureImage(),
+                  ShareButton(),
+                  PageIndicator(),
+                  ArrowIcon(),
+                  TravelDetailLabel(),
+                  StartCampLabel(),
+                  StartTimeLabel(),
+                  BaseCampLabel(),
+                  BaseTimeLabel(),
+                  DistanceLabel(),
+                  TravelDots(),
+                  MapButton(),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _handleDragUpdate(DragUpdateDetails details) {
+    _animationController.value -= details.primaryDelta / maxHeight;
+  }
+
+  void _handleDragEnd(DragEndDetails details) {
+    if (_animationController.isAnimating ||
+        _animationController.status == AnimationStatus.completed) return;
+
+    final double flingVelocity =
+        details.velocity.pixelsPerSecond.dy / maxHeight;
+    if (flingVelocity < 0.0)
+      _animationController.fling(velocity: math.max(2.0, -flingVelocity));
+    else if (flingVelocity > 0.0)
+      _animationController.fling(velocity: math.max(-2.0, -flingVelocity));
+    else
+      _animationController.fling(
+          velocity: _animationController.value < 0.5 ? -2.0 : 2.0);
   }
 }
 
@@ -135,9 +159,9 @@ class ArrowIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AnimationController>(
       builder: (context, animation, child) {
-        print(animation.value);
+        print((1 - animation.value) * (68 + 430.0 + 10.0 - 4));
         return Positioned(
-          top: (1 - animation.value) * (68 + 430.0 + 10.0 - 4),
+          top: 68 + (1 - animation.value) * (430.0 + 10.0 - 4),
           right: 24,
           child: child,
         );
@@ -165,13 +189,19 @@ class ShareButton extends StatelessWidget {
 class VultureImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
+    return Consumer2<PageOffsetNotifier, AnimationController>(
+      builder: (context, notifier, animation, child) {
         return Positioned(
           left:
               1.2 * MediaQuery.of(context).size.width - 0.85 * notifier.offset,
           height: MediaQuery.of(context).size.height / 2.0,
-          child: child,
+          child: Transform.scale(
+            scale: 1 - 0.2 * animation.value,
+            child: Opacity(
+              opacity: 1 - 0.6 * animation.value,
+              child: child,
+            ),
+          ),
         );
       },
       child: IgnorePointer(
@@ -213,10 +243,10 @@ class AppBar extends StatelessWidget {
 class TravelDetailLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
+    return Consumer2<PageOffsetNotifier, AnimationController>(
+      builder: (context, notifier, animation, child) {
         return Positioned(
-          top: 68 + 430.0 + 10.0 - 4,
+          top: 68 + (1 - animation.value) * (430.0 + 10.0 - 4),
           left: 32 + MediaQuery.of(context).size.width - notifier.offset,
           child: Opacity(
             opacity: math.max(0, 4 * notifier.page - 3),
@@ -290,11 +320,11 @@ class StartTimeLabel extends StatelessWidget {
 class BaseCampLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
+    return Consumer2<PageOffsetNotifier, AnimationController>(
+      builder: (context, notifier, animation, child) {
         double opacity = math.max(0, 4 * notifier.page - 3);
         return Positioned(
-          top: 68 + 430.0 + 10.0 + 8 + 32,
+          top: 68 + 32 + 8 + 4 + (1 - animation.value) * (430.0 + 10.0 - 4),
           width: (MediaQuery.of(context).size.width - 48) / 3,
           right: opacity * 10.0,
           child: Opacity(
@@ -317,11 +347,11 @@ class BaseCampLabel extends StatelessWidget {
 class BaseTimeLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
+    return Consumer2<PageOffsetNotifier, AnimationController>(
+      builder: (context, notifier, animation, child) {
         double opacity = math.max(0, 4 * notifier.page - 3);
         return Positioned(
-          top: 68 + 430.0 + 10.0 + 8 + 32 + 40,
+          top: 68 + 8 + 32 + 40 + 4 + (1 - animation.value) * (430.0 + 10.0),
           width: (MediaQuery.of(context).size.width - 48) / 3,
           right: opacity * 10.0,
           child: Opacity(
@@ -374,9 +404,18 @@ class TravelDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
-        double opacity = math.max(0, 4 * notifier.page - 3);
+    return Consumer2<PageOffsetNotifier, AnimationController>(
+      builder: (context, notifier, animation, child) {
+        double spacingfactor;
+        double opacity;
+        if (animation.value == 0) {
+          spacingfactor = math.max(0, 4 * notifier.page - 3);
+          opacity = spacingfactor;
+        } else {
+          spacingfactor = math.max(0, 1 - 6 * animation.value);
+          opacity = 1;
+        }
+
         return Positioned(
           top: 68 + 430.0 + 10.0 + 8 + 32 + 4,
           left: 0,
@@ -388,37 +427,37 @@ class TravelDots extends StatelessWidget {
                 alignment: Alignment.center,
                 children: <Widget>[
                   Container(
-                    margin: EdgeInsets.only(left: opacity * 40),
+                    margin: EdgeInsets.only(left: spacingfactor * 10),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: white,
+                      color: lighterGrey,
                     ),
+                    width: 4,
+                    height: 4,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(right: spacingfactor * 10),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: lighterGrey,
+                    ),
+                    width: 4,
+                    height: 4,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(right: spacingfactor * 40),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: white)),
                     width: 8,
                     height: 8,
                   ),
                   Container(
-                    margin: EdgeInsets.only(left: opacity * 10),
+                    margin: EdgeInsets.only(left: spacingfactor * 40),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: lighterGrey,
+                      color: white,
                     ),
-                    width: 4,
-                    height: 4,
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(right: opacity * 10),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: lighterGrey,
-                    ),
-                    width: 4,
-                    height: 4,
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(right: opacity * 40),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: white)),
                     width: 8,
                     height: 8,
                   ),
@@ -482,9 +521,14 @@ class VultureCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PageOffsetNotifier>(
-      builder: (context, notifier, child) {
-        double multiplier = math.max(0, 4 * notifier.page - 3);
+    return Consumer2<PageOffsetNotifier, AnimationController>(
+      builder: (context, notifier, animation, child) {
+        double multiplier;
+        if (animation.value == 0) {
+          multiplier = math.max(0, 4 * notifier.page - 3);
+        } else {
+          multiplier = math.max(0, 1 - 6 * animation.value);
+        }
         double size = MediaQuery.of(context).size.width * 0.5 * multiplier;
         return Container(
           margin: EdgeInsets.only(bottom: 250, left: 10),
