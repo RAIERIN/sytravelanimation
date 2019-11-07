@@ -81,8 +81,9 @@ class _MainPageState extends State<MainPage>
                   BaseCampLabel(),
                   BaseTimeLabel(),
                   DistanceLabel(),
-                  TravelDots(),
+                  HorizontalTravelDots(),
                   MapButton(),
+                  VerticalTravelDots(),
                 ],
               ),
             ),
@@ -399,8 +400,48 @@ class DistanceLabel extends StatelessWidget {
   }
 }
 
-class TravelDots extends StatelessWidget {
-  const TravelDots({Key key}) : super(key: key);
+class VerticalTravelDots extends StatelessWidget {
+  const VerticalTravelDots({Key key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AnimationController>(
+      builder: (context, animation, child) {
+        if (animation.value < 1 / 6) {
+          return Container();
+        }
+        double startTop = 68 + 430.0 + 10.0 + 8 + 32 + 4;
+        double bottom = MediaQuery.of(context).size.height - startTop - 32;
+        double endTop = 68.0 + 32 + 8 + 4 + 4;
+
+        double top = endTop +
+            (1 - (1.2 * (animation.value - 1 / 6))) * (430.0 + 10.0 - 4);
+
+        print(MediaQuery.of(context).padding.bottom);
+        return Positioned(
+          top: top,
+          bottom: bottom,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: <Widget>[
+                Container(
+                  width: 2,
+                  height: double.infinity,
+                  color: white,
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HorizontalTravelDots extends StatelessWidget {
+  const HorizontalTravelDots({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
